@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact QR Code Generator</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Contact QR Code Generator</h1>
+        
+        <form id="contactForm" class="contact-form">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="website">Personal Website (Optional)</label>
+                <input type="url" id="website" name="website">
+            </div>
+
+            <button type="submit" class="generate-btn">Generate QR Code</button>
+        </form>
+
+        <div id="qrCodeOutput" class="qr-output">
+            <img id="qrCodeImage" src="" alt="QR Code" style="display: none;">
+            <p id="qrCodeLink"></p>
+        </div>
+    </div>
+
+    <script src="/script.js"></script>
+</body>
+</html>

@@ -1,2 +1,0 @@
-# safelink
-Safe Link Project 
