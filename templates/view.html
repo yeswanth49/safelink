@@ -1,0 +1,48 @@
+<!-- templates/view.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Details</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 500px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .contact-card { 
+            background-color: #f4f4f4; 
+            padding: 20px; 
+            border-radius: 8px; 
+        }
+    </style>
+</head>
+<body>
+    <div class="contact-card">
+        <h1>Contact Details</h1>
+        <div id="contactDetails">Loading...</div>
+    </div>
+
+    <script>
+        const contactId = '{{ contact_id }}';
+        
+        fetch(`/api/contact/${contactId}`)
+            .then(response => response.json())
+            .then(contact => {
+                const detailsHtml = `
+                    <p><strong>Name:</strong> ${contact.name}</p>
+                    <p><strong>Phone:</strong> ${contact.phone}</p>
+                    <p><strong>Email:</strong> ${contact.email}</p>
+                    ${contact.website !== 'N/A' ? `<p><strong>Website:</strong> <a href="${contact.website}" target="_blank">${contact.website}</a></p>` : ''}
+                `;
+                document.getElementById('contactDetails').innerHTML = detailsHtml;
+            })
+            .catch(error => {
+                document.getElementById('contactDetails').innerHTML = 'Error loading contact details';
+                console.error('Error:', error);
+            });
+    </script>
+</body>
+</html>

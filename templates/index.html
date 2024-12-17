@@ -1,0 +1,57 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact QR Generator</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 500px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        form { 
+            background-color: #f4f4f4; 
+            padding: 20px; 
+            border-radius: 8px; 
+        }
+        input { 
+            width: 100%; 
+            margin-bottom: 10px; 
+            padding: 8px; 
+            box-sizing: border-box; 
+        }
+        button { 
+            width: 100%; 
+            padding: 10px; 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+        }
+        #qrCodeImage { 
+            max-width: 300px; 
+            margin: 20px auto; 
+            display: none; 
+        }
+    </style>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</head>
+<body>
+    <form id="contactForm">
+        <h2>Create Contact QR Code</h2>
+        <input type="text" name="name" placeholder="Name" required>
+        <input type="tel" name="phone" placeholder="Phone" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="url" name="website" placeholder="Website (Optional)">
+        <button type="submit">Generate QR Code</button>
+    </form>
+
+    <div>
+        <img id="qrCodeImage" src="" alt="QR Code">
+        <div id="qrCodeLink"></div>
+    </div>
+</body>
+</html>
