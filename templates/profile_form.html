@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,26 +14,40 @@
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        /* Navigation */
-        nav {
-            background-color: #2563eb;
+        /* Navigation Styles */
+        .nav {
+            background-color: #2563EB;
             color: white;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        nav .container {
+        .nav-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0.75rem 1.5rem;
+            padding: 0 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        nav .logo {
+        .brand {
             font-size: 1.5rem;
             font-weight: bold;
         }
 
-        nav .highlight {
-            color: #fde047;
+        .brand-highlight {
+            color: #FDE047;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: #FDE047;
         }
 
         /* Container styles */
@@ -136,11 +151,13 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Navigation -->
-    <nav>
-        <div class="container">
-            <div class="logo">safe<span class="highlight">LINK</span></div>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="brand">safe<span class="brand-highlight">LINK</span></div>
+            <a href="{{ url_for('index') }}" class="nav-link">Back to Dashboard</a>
         </div>
     </nav>
 
@@ -148,10 +165,10 @@
     <div class="container">
         <div class="form-container">
             <h1>Create Your Profile</h1>
-            
+
             <form action="{{ url_for('generate_profile') }}" method="POST">
                 <input type="hidden" name="template" value="{{ template }}">
-                
+
                 <div class="form-group">
                     <label for="name">Name</label>
                     <input type="text" id="name" name="name" required>

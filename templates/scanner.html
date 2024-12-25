@@ -21,35 +21,36 @@
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        /* Navigation styles */
-        nav {
+        /* Navigation Styles */
+        .nav {
             background-color: #2563EB;
             color: white;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 1rem 1.5rem;
+            padding: 0 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .logo {
+        .brand {
             font-size: 1.5rem;
             font-weight: bold;
         }
 
-        .logo-highlight {
+        .brand-highlight {
             color: #FDE047;
         }
 
         .nav-link {
             color: white;
             text-decoration: none;
-            transition: color 0.3s;
+            transition: color 0.2s;
         }
 
         .nav-link:hover {
@@ -205,11 +206,10 @@
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
+    <nav class="nav">
         <div class="nav-container">
-            <div class="logo">safe<span class="logo-highlight">LINK</span></div>
-            <a href="#" class="nav-link">Back to Dashboard</a>
+            <div class="brand">safe<span class="brand-highlight">LINK</span></div>
+            <a href="{{ url_for('index') }}" class="nav-link">Back to Dashboard</a>
         </div>
     </nav>
 
