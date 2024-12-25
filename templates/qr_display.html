@@ -5,8 +5,8 @@
 </head>
 <body>
     <h1>Your QR Code</h1>
-    <img src="{{ url_for('static', filename='profiles/' + profile_id + '_qr.png') }}" alt="QR Code">
+    <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR Code">
     <br>
-    <a href="/download/{{ profile_id }}" download>Download QR Code</a>
+    <a href="{{ url_for('download_qr', profile_id=profile_id) }}" class="button">Download QR Code</a>
 </body>
 </html>
