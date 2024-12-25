@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Code Scanner</title>
+    <style>
+        #reader {
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        #password-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="reader"></div>
+    
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div id="password-modal">
+        <h3>Enter Password</h3>
+        <input type="password" id="password-input">
+        <button onclick="verifyPassword()">Submit</button>
+        <button onclick="closeModal()">Cancel</button>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script>
+        let currentProfileId = null;
+        
+        function onScanSuccess(decodedText, decodedResult) {
+            // Stop scanning
+            html5QrcodeScanner.clear();
+            
+            // Extract profile ID from URL
+            const url = new URL(decodedText);
+            const pathParts = url.pathname.split('/');
+            currentProfileId = pathParts[pathParts.length - 1];
+            
+            // Show password modal
+            document.getElementById('modal-backdrop').style.display = 'block';
+            document.getElementById('password-modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal-backdrop').style.display = 'none';
+            document.getElementById('password-modal').style.display = 'none';
+            // Restart scanner
+            startScanner();
+        }
+
+        async function verifyPassword() {
+            const password = document.getElementById('password-input').value;
+            
+            try {
+                const response = await fetch(`/verify_password/${currentProfileId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ password: password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.valid) {
+                    // Redirect to edit page
+                    window.location.href = `/edit_profile/${currentProfileId}`;
+                } else {
+                    alert('Invalid password');
+                    closeModal();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error verifying password');
+                closeModal();
+            }
+        }
+
+        function startScanner() {
+            const html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader", 
+                { fps: 10, qrbox: 250 }
+            );
+            html5QrcodeScanner.render(onScanSuccess);
+        }
+
+        // Start scanner when page loads
+        startScanner();
+    </script>
+</body>
+</html>

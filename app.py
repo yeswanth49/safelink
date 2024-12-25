@@ -161,6 +161,84 @@ def download_qr(profile_id):
         return "Error generating QR code", 500
     finally:
         conn.close()
+    # Add these new routes to your app.py
 
+@app.route('/scanner')
+def scanner():
+    """Route to show QR scanner page"""
+    return render_template('scanner.html')
+
+@app.route('/edit_profile/<profile_id>', methods=['GET', 'POST'])
+def edit_profile(profile_id):
+    conn = get_db()
+    try:
+        if request.method == 'POST':
+            # Verify password first
+            profile = conn.execute(
+                'SELECT password FROM profiles WHERE id = ?', 
+                (profile_id,)
+            ).fetchone()
+            
+            if not profile or profile['password'] != request.form.get('password'):
+                return "Invalid password", 403
+                
+            # Update profile
+            conn.execute('''
+                UPDATE profiles 
+                SET name = ?,
+                    phone = ?,
+                    blood_group = ?,
+                    emergency_contact = ?,
+                    medical_conditions = ?,
+                    allergies = ?,
+                    medications = ?
+                WHERE id = ?
+            ''', (
+                request.form['name'],
+                request.form['phone'],
+                request.form['blood_group'],
+                request.form.get('emergency_contact'),
+                request.form.get('medical_conditions'),
+                request.form.get('allergies'),
+                request.form.get('medications'),
+                profile_id
+            ))
+            conn.commit()
+            return redirect(url_for('view_profile', profile_id=profile_id))
+            
+        # GET request - show edit form
+        profile = conn.execute(
+            'SELECT * FROM profiles WHERE id = ?', 
+            (profile_id,)
+        ).fetchone()
+        
+        if profile is None:
+            return "Profile not found", 404
+            
+        return render_template('edit_profile.html', profile=dict(profile))
+        
+    finally:
+        conn.close()
+
+@app.route('/verify_password/<profile_id>', methods=['POST'])
+def verify_password(profile_id):
+    """API endpoint to verify password"""
+    conn = get_db()
+    try:
+        profile = conn.execute(
+            'SELECT password FROM profiles WHERE id = ?', 
+            (profile_id,)
+        ).fetchone()
+        
+        if not profile:
+            return {"valid": False}, 404
+            
+        provided_password = request.json.get('password')
+        is_valid = profile['password'] == provided_password
+        
+        return {"valid": is_valid}
+    finally:
+        conn.close()
+        
 if __name__ == '__main__':
     app.run(debug=True)
