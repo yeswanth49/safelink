@@ -181,14 +181,35 @@
                 <p class="profile-value">{{ profile.blood_group }}</p>
             </div>
             <div class="profile-section">
-                <h2 class="profile-label">Blood Group</h2>
-                <p class="profile-value">{{ profile.blood_group }}</p>
+                <h2 class="profile-label">Emergency Contacts
+                </h2>
+                <p class="profile-value">{{ profile.emergency_contact }}</p>
+            </div>
+            <div class="profile-section">
+                <h2 class="profile-label">Medical Conditions
+                </h2>
+                <p class="profile-value">{{ profile.medical_conditions }}</p>
+            </div>
+            <div class="profile-section">
+                <h2 class="profile-label">Allergies
+                </h2>
+                <p class="profile-value">{{ profile.allergies }}</p>
+            </div>
+            <div class="profile-section">
+                <h2 class="profile-label">Current Medications
+                </h2>
+                <p class="profile-value">{{ profile.medications }}</p>
             </div>
 
             <div class="button-group">
-                <button class="button button-primary">Call Emergency Contact</button>
-                <button class="button button-secondary">View Medical History</button>
+                <a href="tel:+91{{ profile.emergency_contact }}">
+                    <button class="button button-primary">Call Emergency Contact</button>
+                </a>
+                <a href="index.html">
+                    <button class="button button-secondary">View safeLINK</button>
+                </a>
             </div>
+            
         </div>
     </main>
 
