@@ -1,4 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, send_file
+import os
+import psycopg2
+from psycopg2.extras import DictCursor
 import sqlite3
 import qrcode
 import io
@@ -8,9 +11,15 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+def get_db_connection():
+    conn = psycopg2.connect('DATABASE_URL')
+    return conn
+
 def init_db():
     """Initialize the SQLite database and create tables if they don't exist"""
-    conn = sqlite3.connect('profiles.db')
+    conn = get_db_connection()
     c = conn.cursor()
     c.execute('''
         CREATE TABLE IF NOT EXISTS profiles (
@@ -239,6 +248,17 @@ def verify_password(profile_id):
         return {"valid": is_valid}
     finally:
         conn.close()
+
+
+@app.route('/profiles')
+def get_users():
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=DictCursor)
+    cur.execute('SELECT * FROM profiles;')
+    profiles = cur.fetchall()
+    cur.close()
+    conn.close()
+    return {'profiles': profiles}
         
 if __name__ == '__main__':
     app.run(debug=True)
