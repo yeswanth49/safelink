@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for, send_file
 import os
 import psycopg2
 from psycopg2.extras import DictCursor
-import sqlite3
 import qrcode
 import io
 import base64
@@ -14,7 +13,7 @@ app = Flask(__name__)
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 def get_db_connection():
-    conn = psycopg2.connect('DATABASE_URL')
+    conn = psycopg2.connect(DATABASE_URL)
     return conn
 
 def init_db():
@@ -37,13 +36,8 @@ def init_db():
         )
     ''')
     conn.commit()
+    c.close()
     conn.close()
-
-def get_db():
-    """Get database connection"""
-    conn = sqlite3.connect('profiles.db')
-    conn.row_factory = sqlite3.Row  # This enables name-based access to columns
-    return conn
 
 # Initialize the database when the app is created
 with app.app_context():
@@ -62,13 +56,14 @@ def generate_profile():
     # Generate a secure random ID
     profile_id = secrets.token_hex(16)
     
-    conn = get_db()
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=DictCursor)
     try:
-        conn.execute('''
+        cur.execute('''
             INSERT INTO profiles (
                 id, name, phone, blood_group, template, password,
                 emergency_contact, medical_conditions, allergies, medications
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ''', (
             profile_id,
             request.form['name'],
@@ -107,14 +102,16 @@ def generate_profile():
         print(f"Error: {e}")
         return "Error creating profile", 500
     finally:
+        cur.close()
         conn.close()
 
 @app.route('/profile/<profile_id>')
 def view_profile(profile_id):
-    conn = get_db()
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=DictCursor)
     try:
-        profile = conn.execute(
-            'SELECT * FROM profiles WHERE id = ?', 
+        profile = cur.execute(
+            'SELECT * FROM profiles WHERE id = %s', 
             (profile_id,)
         ).fetchone()
         
@@ -129,15 +126,17 @@ def view_profile(profile_id):
                              profile=dict(profile),  # Convert Row to dict
                              show_sensitive=show_sensitive)
     finally:
+        cur.close()
         conn.close()
 
 @app.route('/download_qr/<profile_id>')
 def download_qr(profile_id):
-    conn = get_db()
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=DictCursor)
     try:
         # Verify profile exists
-        profile = conn.execute(
-            'SELECT id FROM profiles WHERE id = ?', 
+        profile = cur.execute(
+            'SELECT id FROM profiles WHERE id = %s', 
             (profile_id,)
         ).fetchone()
         
@@ -169,6 +168,7 @@ def download_qr(profile_id):
         print(f"Download error: {e}")
         return "Error generating QR code", 500
     finally:
+        cur.close()
         conn.close()
     # Add these new routes to your app.py
 
@@ -179,12 +179,13 @@ def scanner():
 
 @app.route('/edit_profile/<profile_id>', methods=['GET', 'POST'])
 def edit_profile(profile_id):
-    conn = get_db()
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=DictCursor)
     try:
         if request.method == 'POST':
             # Verify password first
-            profile = conn.execute(
-                'SELECT password FROM profiles WHERE id = ?', 
+            profile = cur.execute(
+                'SELECT password FROM profiles WHERE id = %s', 
                 (profile_id,)
             ).fetchone()
             
@@ -192,16 +193,16 @@ def edit_profile(profile_id):
                 return "Invalid password", 403
                 
             # Update profile
-            conn.execute('''
+            cur.execute('''
                 UPDATE profiles 
-                SET name = ?,
-                    phone = ?,
-                    blood_group = ?,
-                    emergency_contact = ?,
-                    medical_conditions = ?,
-                    allergies = ?,
-                    medications = ?
-                WHERE id = ?
+                SET name = %s,
+                    phone = %s,
+                    blood_group = %s,
+                    emergency_contact = %s,
+                    medical_conditions = %s,
+                    allergies = %s,
+                    medications = %s
+                WHERE id = %s
             ''', (
                 request.form['name'],
                 request.form['phone'],
@@ -216,8 +217,8 @@ def edit_profile(profile_id):
             return redirect(url_for('view_profile', profile_id=profile_id))
             
         # GET request - show edit form
-        profile = conn.execute(
-            'SELECT * FROM profiles WHERE id = ?', 
+        profile = cur.execute(
+            'SELECT * FROM profiles WHERE id = %s', 
             (profile_id,)
         ).fetchone()
         
@@ -227,15 +228,17 @@ def edit_profile(profile_id):
         return render_template('edit_profile.html', profile=dict(profile))
         
     finally:
+        cur.close()
         conn.close()
 
 @app.route('/verify_password/<profile_id>', methods=['POST'])
 def verify_password(profile_id):
     """API endpoint to verify password"""
-    conn = get_db()
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=DictCursor)
     try:
-        profile = conn.execute(
-            'SELECT password FROM profiles WHERE id = ?', 
+        profile = cur.execute(
+            'SELECT password FROM profiles WHERE id = %s', 
             (profile_id,)
         ).fetchone()
         
@@ -247,6 +250,7 @@ def verify_password(profile_id):
         
         return {"valid": is_valid}
     finally:
+        cur.close()
         conn.close()
 
 
