@@ -30,14 +30,13 @@
                              class="absolute hidden bg-white text-gray-800 mt-2 py-2 w-48 rounded-lg shadow-xl">
                             <a href="{{ url_for('select_template', template_name='template1') }}" class="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600">Vehicles</a>
                             <a href="{{ url_for('select_template', template_name='template1') }}" class="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600">Individuals</a>
-                            <a href="{{ url_for('select_template', template_name='template1') }}" class="block px-4 py-2 hover:bg-blue-50 hover:text-blue-600">Pets</a>
                         </div>
                     </div>
                     <a href="{{ url_for('scanner') }}" class="hover:text-yellow-300 transition">Change Details</a>
-                    <a href="#contact" class="hover:text-yellow-300 transition">Contact</a>
+                    <a href="mailto:work.pecup@gmail.com" class="hover:text-yellow-300 transition">Contact</a>
                 </div>
                 <button class="bg-yellow-400 text-blue-900 px-6 py-2 rounded-full font-semibold hover:bg-yellow-300 transition">
-                    Get Started
+                    <a href="{{ url_for('select_template', template_name='template1') }}" >Get Started</a>
                 </button>
             </div>
         </div>
@@ -168,9 +167,8 @@ SafeLINK is particularly useful for scenarios like emergency identification, sha
                     <h4 class="font-semibold mb-4">Quick Links</h4>
                     <ul class="space-y-2">
                         <li><a href="#" class="text-blue-200 hover:text-white">Home</a></li>
-                        <li><a href="#qr-code" class="text-blue-200 hover:text-white">Vehicles</a></li>
-                        <li><a href="#nfc" class="text-blue-200 hover:text-white">Individuals</a></li>
-                        <li><a href="#updates" class="text-blue-200 hover:text-white">Pets</a></li>
+                        <li><a href="{{ url_for('select_template', template_name='template1') }}" class="text-blue-200 hover:text-white">Vehicles</a></li>
+                        <li><a href="{{ url_for('select_template', template_name='template1') }}" class="text-blue-200 hover:text-white">Individuals</a></li>
                     </ul>
                 </div>
                 <div>
