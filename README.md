@@ -30,23 +30,37 @@ A Next.js application that generates QR codes for emergency contact information,
 pnpm install
 ```
 
-### 2. Set up Supabase
+### 2. Development Mode (Optional - Supabase Setup)
+
+The app includes a **mock data layer** that allows you to run and test all functionality without setting up Supabase. This is perfect for development and testing.
+
+#### Option A: Use Mock Data (Recommended for Development)
+
+1. **No additional setup required!** The app will automatically use mock data when Supabase is not configured.
+2. All features work including:
+   - Profile creation
+   - QR code generation (placeholder images)
+   - Profile retrieval
+   - Password verification (use "demo123" for testing all profiles)
+   - Profile editing
+
+#### Option B: Set up Supabase (Production Ready)
 
 1. Create a new project at [supabase.com](https://supabase.com)
 2. Go to your project settings and copy the following:
    - Project URL
    - Anon/Public key
 
-### 3. Configure Environment Variables
+3. Configure Environment Variables
 
 Update the `.env.local` file in your project root:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url_here
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_actual_anon_key_here
 ```
 
-### 4. Set up Database Schema
+4. Set up Database Schema
 
 Run the Supabase migration to create the necessary tables:
 
