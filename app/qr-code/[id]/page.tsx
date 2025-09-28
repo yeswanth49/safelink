@@ -22,43 +22,54 @@ interface ProfileData {
 }
 
 export default function QRCodePage({ params }: QRCodePageProps) {
-  const [copied, setCopied] = useState(false)
-  const [isVisible, setIsVisible] = useState(false)
   const [profileData, setProfileData] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    fetchProfileData()
-  }, [])
+    const fetchProfile = async () => {
+      try {
+        console.log('Starting fetch for profile:', params.id)
+        const response = await fetch(`/api/profiles/${params.id}`)
+        console.log('Fetch completed, status:', response.status)
 
-  const fetchProfileData = async () => {
-    try {
-      const response = await fetch(`/api/profiles?id=${params.id}`)
-      const data = await response.json()
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error('API error:', errorText)
+          throw new Error(`API Error: ${response.status}`)
+        }
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch profile')
+        const data = await response.json()
+        console.log('API response:', data)
+
+        if (data.profile) {
+          setProfileData({
+            id: data.profile.id,
+            name: data.profile.name,
+            qrCodeUrl: data.profile.qrCodeUrl,
+            profileUrl: `http://localhost:3000/profile/${data.profile.id}`,
+          })
+        } else {
+          throw new Error('No profile data received')
+        }
+      } catch (err) {
+        console.error('Fetch failed:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load profile')
+      } finally {
+        setLoading(false)
       }
-
-      const profile = data.profile
-      setProfileData({
-        id: profile.id,
-        name: profile.name,
-        qrCodeUrl: profile.qrCodeUrl,
-        profileUrl: `${typeof window !== "undefined" ? window.location.origin : ""}/profile/${profile.id}`,
-      })
-    } catch (error) {
-      console.error('Error fetching profile:', error)
-      setError(error instanceof Error ? error.message : 'Failed to load profile')
-    } finally {
-      setLoading(false)
     }
-  }
 
-  useEffect(() => {
-    setIsVisible(true)
-  }, [])
+    // Only run on client side
+    if (typeof window !== 'undefined') {
+      fetchProfile()
+    } else {
+      // For server-side rendering, set loading to false
+      setLoading(false)
+      setError('Unable to load profile')
+    }
+  }, [params.id])
 
   const handleDownload = async () => {
     if (!profileData?.qrCodeUrl) return
@@ -79,24 +90,9 @@ export default function QRCodePage({ params }: QRCodePageProps) {
     }
   }
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "My safeLINK Emergency Contact",
-          text: "Access my emergency contact information",
-          url: profileData.profileUrl,
-        })
-      } catch (err) {
-        console.log("Error sharing:", err)
-      }
-    } else {
-      // Fallback to copying URL
-      handleCopyUrl()
-    }
-  }
-
   const handleCopyUrl = async () => {
+    if (!profileData?.profileUrl) return
+
     try {
       await navigator.clipboard.writeText(profileData.profileUrl)
       setCopied(true)
@@ -120,7 +116,6 @@ export default function QRCodePage({ params }: QRCodePageProps) {
   if (error || !profileData) {
     return (
       <div className="min-h-screen bg-background">
-        {/* Navigation */}
         <nav className="border-b border-border">
           <div className="container mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
@@ -130,11 +125,7 @@ export default function QRCodePage({ params }: QRCodePageProps) {
                 </div>
                 <span className="text-xl font-bold text-foreground">safeLINK</span>
               </Link>
-
-              <Link
-                href="/"
-                className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <Link href="/" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors">
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Home</span>
               </Link>
@@ -161,7 +152,6 @@ export default function QRCodePage({ params }: QRCodePageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
       <nav className="border-b border-border">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
@@ -171,11 +161,7 @@ export default function QRCodePage({ params }: QRCodePageProps) {
               </div>
               <span className="text-xl font-bold text-foreground">safeLINK</span>
             </Link>
-
-            <Link
-              href="/"
-              className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
+            <Link href="/" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Home</span>
             </Link>
@@ -185,10 +171,7 @@ export default function QRCodePage({ params }: QRCodePageProps) {
 
       <div className="container mx-auto px-6 py-12">
         <div className="max-w-2xl mx-auto">
-          {/* Success Message */}
-          <div
-            className={`text-center mb-8 transition-all duration-1000 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}
-          >
+          <div className="text-center mb-8">
             <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
@@ -196,10 +179,7 @@ export default function QRCodePage({ params }: QRCodePageProps) {
             <p className="text-muted-foreground">Your emergency contact QR code has been generated successfully</p>
           </div>
 
-          {/* QR Code Display */}
-          <Card
-            className={`p-8 text-center border-border transition-all duration-1000 delay-200 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}
-          >
+          <Card className="p-8 text-center border-border">
             <div className="mb-6">
               <Badge variant="secondary" className="mb-4">
                 Profile ID: {params.id}
@@ -208,7 +188,6 @@ export default function QRCodePage({ params }: QRCodePageProps) {
               <p className="text-muted-foreground">Scan this code to access emergency information</p>
             </div>
 
-            {/* QR Code Container */}
             <div className="bg-muted/30 rounded-2xl p-8 mb-6 inline-block">
               <div className="bg-white p-4 rounded-xl shadow-sm">
                 <img
@@ -219,127 +198,44 @@ export default function QRCodePage({ params }: QRCodePageProps) {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <Button
-                onClick={handleDownload}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2"
-              >
+              <Button onClick={handleDownload} className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2">
                 <Download className="w-4 h-4" />
                 Download QR Code
               </Button>
-              <Button
-                onClick={handleShare}
-                variant="outline"
-                className="border-border hover:bg-muted/50 flex items-center gap-2 bg-transparent"
-              >
+              <Button variant="outline" className="border-border hover:bg-muted/50 flex items-center gap-2 bg-transparent">
                 <Share2 className="w-4 h-4" />
                 Share QR Code
               </Button>
             </div>
 
-            {/* URL Copy Section */}
             <div className="bg-muted/30 rounded-lg p-4 mb-6">
               <p className="text-sm text-muted-foreground mb-2">Direct Link:</p>
               <div className="flex items-center gap-2">
                 <code className="flex-1 text-sm bg-background border border-border rounded px-3 py-2 text-left">
                   {profileData.profileUrl}
                 </code>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleCopyUrl}
-                  className="border-border hover:bg-muted/50 bg-transparent"
-                >
+                <Button size="sm" variant="outline" onClick={handleCopyUrl} className="border-border hover:bg-muted/50 bg-transparent">
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
           </Card>
 
-          {/* Next Steps */}
-          <Card
-            className={`p-6 mt-6 border-border transition-all duration-1000 delay-400 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}
-          >
-            <h3 className="text-lg font-semibold text-foreground mb-4">What's Next?</h3>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center mt-0.5">
-                  <span className="text-xs font-semibold text-primary">1</span>
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">Print Your QR Code</p>
-                  <p className="text-sm text-muted-foreground">
-                    Print and place it in your wallet, car, or other easily accessible locations
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center mt-0.5">
-                  <span className="text-xs font-semibold text-primary">2</span>
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">Save to Your Phone</p>
-                  <p className="text-sm text-muted-foreground">
-                    Save the QR code image to your phone's photo gallery for quick access
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center mt-0.5">
-                  <span className="text-xs font-semibold text-primary">3</span>
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">Share with Family</p>
-                  <p className="text-sm text-muted-foreground">
-                    Let your family members know about your safeLINK for added security
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Additional Actions */}
-          <div
-            className={`flex flex-col sm:flex-row gap-4 mt-6 transition-all duration-1000 delay-600 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}
-          >
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 border-border hover:bg-muted/50 bg-transparent"
-              asChild
-            >
+          <div className="flex flex-col sm:flex-row gap-4 mt-6">
+            <Button variant="outline" className="flex items-center gap-2 border-border hover:bg-muted/50 bg-transparent" asChild>
               <Link href={`/edit-profile/${params.id}`}>
                 <Edit className="w-4 h-4" />
                 Edit Profile
               </Link>
             </Button>
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 border-border hover:bg-muted/50 bg-transparent"
-              asChild
-            >
+            <Button variant="outline" className="flex items-center gap-2 border-border hover:bg-muted/50 bg-transparent" asChild>
               <Link href={`/profile/${params.id}`}>
                 <QrCode className="w-4 h-4" />
                 Preview Profile
               </Link>
             </Button>
           </div>
-
-          {/* Security Notice */}
-          <Card
-            className={`mt-6 p-4 bg-muted/50 border-border transition-all duration-1000 delay-800 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}
-          >
-            <div className="flex items-start gap-3">
-              <Shield className="w-5 h-5 text-muted-foreground mt-0.5" />
-              <div>
-                <h3 className="font-medium text-foreground mb-1">Security & Privacy</h3>
-                <p className="text-sm text-muted-foreground">
-                  Your QR code links to basic contact information only. Sensitive medical details require password
-                  authentication. You can update or delete your information at any time.
-                </p>
-              </div>
-            </div>
-          </Card>
         </div>
       </div>
     </div>

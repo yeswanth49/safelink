@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase, isSupabaseReady } from '@/lib/supabase'
 import { verifyPassword } from '@/lib/qr-utils'
+import { verifyMockPassword } from '@/lib/mock-data'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,31 +15,46 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get profile
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('password_hash')
-      .eq('id', profileId)
-      .single()
+    if (isSupabaseReady && supabase) {
+      // Use Supabase
+      // Get profile
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('password_hash')
+        .eq('id', profileId)
+        .single()
 
-    if (error || !profile) {
-      return NextResponse.json(
-        { error: 'Profile not found' },
-        { status: 404 }
-      )
+      if (error || !profile) {
+        return NextResponse.json(
+          { error: 'Profile not found' },
+          { status: 404 }
+        )
+      }
+
+      // Verify password
+      const isValid = await verifyPassword(password, profile.password_hash)
+
+      if (!isValid) {
+        return NextResponse.json(
+          { error: 'Invalid password' },
+          { status: 401 }
+        )
+      }
+
+      return NextResponse.json({ success: true })
+    } else {
+      // Use mock verification
+      const isValid = await verifyMockPassword(profileId, password)
+
+      if (!isValid) {
+        return NextResponse.json(
+          { error: 'Invalid password' },
+          { status: 401 }
+        )
+      }
+
+      return NextResponse.json({ success: true })
     }
-
-    // Verify password
-    const isValid = await verifyPassword(password, profile.password_hash)
-
-    if (!isValid) {
-      return NextResponse.json(
-        { error: 'Invalid password' },
-        { status: 401 }
-      )
-    }
-
-    return NextResponse.json({ success: true })
 
   } catch (error) {
     console.error('Error verifying password:', error)

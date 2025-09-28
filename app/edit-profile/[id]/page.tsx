@@ -53,7 +53,13 @@ export default function EditProfilePage({ params }: EditProfilePageProps) {
   const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
 
   useEffect(() => {
-    fetchProfileData()
+    // Only run fetch on client side
+    if (typeof window !== 'undefined') {
+      fetchProfileData()
+    } else {
+      setLoading(true)
+      setError('Unable to load profile')
+    }
     setIsVisible(true)
   }, [])
 

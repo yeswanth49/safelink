@@ -33,7 +33,13 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchProfileData()
+    // Only run fetch on client side
+    if (typeof window !== 'undefined') {
+      fetchProfileData()
+    } else {
+      setLoading(false)
+      setError('Unable to load profile')
+    }
   }, [])
 
   const fetchProfileData = async () => {
